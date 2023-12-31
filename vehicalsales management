@@ -1,0 +1,261 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Vehicle {
+    private String name;
+    private String description;
+    private double price;
+
+    public Vehicle(String name, String description, double price) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+}
+
+class UserManager {
+    private static final String ADMIN_PASSWORD = "skanda";
+
+    public static boolean isAdmin(String password) {
+        return password.equals(ADMIN_PASSWORD);
+    }
+}
+
+class VehicleSalesSystem {
+    private static final String BILL_FILE_NAME = "bill.txt";
+    private static ArrayList<Vehicle> vehicles = new ArrayList<>();
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        initializeVehicles();
+
+        System.out.println("\n|||||||WELCOME TO VEHICLE SALES SYSTEM||||||");
+
+        while (true) {
+            System.out.println("\nSelect an option:");
+            System.out.println("1. User Login");
+            System.out.println("2. Admin Login");
+            System.out.println("3. Exit");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+
+            switch (choice) {
+                case 1:
+                    userLogin();
+                    break;
+                case 2:
+                    adminLogin();
+                    break;
+                case 3:
+                    System.out.println("Exiting the program. Goodbye!");
+                    System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void userLogin() {
+        System.out.println("Enter user credentials:");
+        // In a real system, you might have a user authentication mechanism.
+        // For simplicity, we assume any input is valid for now.
+
+        displayVehicles();
+
+        System.out.println("\nSelect an option:");
+        System.out.println("1. Buy a vehicle");
+        System.out.println("2. Exit");
+
+        int choice = scanner.nextInt();
+        scanner.nextLine(); // Consume the newline character
+
+        switch (choice) {
+            case 1:
+                buyVehicle();
+                break;
+            case 2:
+                break;
+            default:
+                System.out.println("Invalid choice. Returning to the main menu.");
+        }
+    }
+
+    private static void adminLogin() {
+        System.out.println("Enter admin password:");
+        String password = scanner.nextLine();
+
+        if (UserManager.isAdmin(password)) {
+            while (true) {
+                System.out.println("\nAdmin Menu:");
+                System.out.println("1. Add Vehicle");
+                System.out.println("2. Delete Vehicle");
+                System.out.println("3. Update Vehicle Info");
+                System.out.println("4. Display Sales Report");
+                System.out.println("5. Logout");
+
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // Consume the newline character
+
+                switch (choice) {
+                    case 1:
+                        addVehicle();
+                        break;
+                    case 2:
+                        deleteVehicle();
+                        break;
+                    case 3:
+                        updateVehicleInfo();
+                        break;
+                    case 4:
+                        displaySalesReport();
+                        break;
+                    case 5:
+                        System.out.println("Logging out of admin account.");
+                        return;
+                    default:
+                        System.out.println("Invalid choice. Please try again.");
+                }
+            }
+        } else {
+            System.out.println("Invalid admin password. Returning to the main menu.");
+        }
+    }
+
+    private static void initializeVehicles() {
+        vehicles.add(new Vehicle("Car1", "Sedan", 25000.0));
+        vehicles.add(new Vehicle("Car2", "SUV", 35000.0));
+        vehicles.add(new Vehicle("Motorcycle1", "Sport Bike", 10000.0));
+        vehicles.add(new Vehicle("Truck1", "Pickup Truck", 40000.0));
+    }
+
+    private static void displayVehicles() {
+        System.out.println("\nAvailable Vehicles:");
+        System.out.printf("%-20s %-20s %-20s\n", "Vehicle Name", "Description", "Price");
+
+        for (Vehicle vehicle : vehicles) {
+            System.out.printf("%-20s %-20s %-20s\n",
+                    vehicle.getName(), vehicle.getDescription(), vehicle.getPrice());
+        }
+    }
+
+    private static void buyVehicle() {
+        displayVehicles();
+
+        System.out.println("\nEnter the name of the vehicle you want to buy:");
+        String vehicleName = scanner.nextLine();
+
+        for (Vehicle vehicle : vehicles) {
+            if (vehicle.getName().equalsIgnoreCase(vehicleName)) {
+                double price = vehicle.getPrice();
+                generateBill(vehicle);
+
+                System.out.println("Vehicle purchased successfully!");
+                System.out.println("Total Price: $" + price);
+                return;
+            }
+        }
+
+        System.out.println("Vehicle not found. Returning to the main menu.");
+    }
+
+    private static void generateBill(Vehicle vehicle) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(BILL_FILE_NAME, true))) {
+            writer.write("Vehicle Name: " + vehicle.getName());
+            writer.newLine();
+            writer.write("Description: " + vehicle.getDescription());
+            writer.newLine();
+            writer.write("Price: $" + vehicle.getPrice());
+            writer.newLine();
+            writer.newLine(); // Separate entries in the bill file
+
+            System.out.println("Bill updated successfully. Check " + BILL_FILE_NAME + " for details.");
+        } catch (IOException e) {
+            System.out.println("Error updating bill. Please contact support.");
+        }
+    }
+
+    private static void addVehicle() {
+        System.out.println("Enter vehicle details:");
+
+        System.out.println("Name:");
+        String name = scanner.nextLine();
+
+        System.out.println("Description:");
+        String description = scanner.nextLine();
+
+        System.out.println("Price:");
+        double price = scanner.nextDouble();
+        scanner.nextLine(); // Consume the newline character
+
+        vehicles.add(new Vehicle(name, description, price));
+
+        System.out.println("Vehicle added successfully.");
+    }
+
+    private static void deleteVehicle() {
+        displayVehicles();
+
+        System.out.println("\nEnter the name of the vehicle you want to delete:");
+        String vehicleName = scanner.nextLine();
+
+        vehicles.removeIf(vehicle -> vehicle.getName().equalsIgnoreCase(vehicleName));
+
+        System.out.println("Vehicle deleted successfully.");
+    }
+
+    private static void updateVehicleInfo() {
+        displayVehicles();
+
+        System.out.println("\nEnter the name of the vehicle you want to update:");
+        String vehicleName = scanner.nextLine();
+
+        for (Vehicle vehicle : vehicles) {
+            if (vehicle.getName().equalsIgnoreCase(vehicleName)) {
+                System.out.println("Enter updated details:");
+
+                System.out.println("New Name:");
+                String newName = scanner.nextLine();
+
+                System.out.println("New Description:");
+                String newDescription = scanner.nextLine();
+
+                System.out.println("New Price:");
+                double newPrice = scanner.nextDouble();
+                scanner.nextLine(); // Consume the newline character
+
+                vehicle = new Vehicle(newName, newDescription, newPrice);
+                System.out.println("Vehicle updated successfully.");
+                return;
+            }
+        }
+
+        System.out.println("Vehicle not found. Returning to the admin menu.");
+    }
+
+    private static void displaySalesReport() {
+        System.out.println("\nSales Report:");
+        try (BufferedReader reader = new BufferedReader(new FileReader(BILL_FILE_NAME))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading sales report. Please contact support.");
+        }
+    }
+}
